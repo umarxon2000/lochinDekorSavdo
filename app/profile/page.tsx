@@ -106,7 +106,7 @@ export default function ProfilePage() {
       <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-[2rem] text-white shadow-xl shadow-blue-500/10 flex items-center justify-between">
         <div className="space-y-1">
           <p className="text-[10px] font-black uppercase opacity-70 tracking-widest">Foydalanuvchi</p>
-          <h2 className="text-3xl font-black italic tracking-tight">{profile?.nickname || "Noma'lum"}</h2>
+          <h2 className="text-3xl font-black italic tracking-tight">{profile?.nickname || "sotuvchi"}</h2>
           <span className="inline-flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mt-1">
             <ShieldUser size={12} /> {profile?.role === 'admin' ? 'Adminstrator' : 'Sotuvchi'}
           </span>

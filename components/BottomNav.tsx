@@ -1,7 +1,7 @@
 "use client"
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, BarChart3, Package, UserCircle } from 'lucide-react';
+import { LayoutGrid, BarChart3, Package, UserCircle, ShoppingCart } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -13,7 +13,8 @@ export default function BottomNav() {
     { name: 'Savdo', href: '/', icon: LayoutGrid },
     { name: 'Ombor', href: '/admin', icon: Package },
     { name: 'Statistika', href: '/admin/sales', icon: BarChart3 },
-    { name: 'Profil', href: '/profile', icon: UserCircle },
+    { name: 'cart', href: '/cart', icon: ShoppingCart },
+    { name: 'Profil', href: '/profile', icon: UserCircle }
   ];
 
   return (

@@ -2,13 +2,12 @@
 import { useCartStore } from '@/store/useCartStore';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Trash2, FileText, User, Phone, CheckCircle2, Loader2 } from "lucide-react";
+import { ShoppingCart, Trash2, FileText, User, Phone, CheckCircle2, Loader2, X } from "lucide-react";
 import { useState } from 'react';
 import { generatePDF } from '@/utils/generatePDF';
 import { createClient } from '@/utils/supabase/client';
 
 export default function CartDrawer() {
-  // Store-dan yangi maydon nomlari bo'yicha ma'lumotlarni olamiz
   const { 
     items, 
     removeItem, 
@@ -22,11 +21,11 @@ export default function CartDrawer() {
   const [loading, setLoading] = useState<boolean>(false);
   const supabase = createClient();
 
-  // Jami summani yangi `total_price` maydoni orqali hisoblaymiz
-  const totalSum = items.reduce((sum, item) => sum + (item.total_price || 0), 0);
+  // Xavfsiz jami summani hisoblash
+  const totalSum = items?.reduce((sum, item) => sum + (Number(item.total_price) || 0), 0) || 0;
 
-  // Savat bo'sh bo'lsa, pastki panel ekranda joy egallamaydi
-  if (items.length === 0) return null;
+  // Savat bo'sh bo'lsa ekran joy egallamaydi
+  if (!items || items.length === 0) return null;
 
   const handleFinalCheckout = async () => {
     if (!customerName.trim()) {
@@ -36,7 +35,6 @@ export default function CartDrawer() {
     
     setLoading(true);
     try {
-      // Supabase RPC-ga ma'lumotlarni yangi interfeys bo'yicha xavfsiz map qilamiz
       const { error } = await supabase.rpc('complete_sale_transaction', {
         p_customer_name: customerName,
         p_customer_phone: customerPhone || null,
@@ -52,16 +50,13 @@ export default function CartDrawer() {
 
       if (error) throw error;
 
-      // PDF chek yaratish
       generatePDF(items, totalSum, { name: customerName, phone: customerPhone });
       
       alert("Sotuv muvaffaqiyatli yakunlandi!");
       clearCart();
       setIsOpen(false);
-   } catch (error: unknown) {
+    } catch (error: unknown) {
       console.error("Sotuvni rasmiylashtirishda xatolik:", error);
-      
-      // Xatolik standart Error obyekti ekanligini tekshiramiz
       if (error instanceof Error) {
         alert(error.message);
       } else {
@@ -70,37 +65,55 @@ export default function CartDrawer() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none">
-      <div className="max-w-md mx-auto bg-white border border-slate-200/80 shadow-2xl rounded-t-[2.5rem] rounded-b-[2rem] overflow-hidden pointer-events-auto transition-all duration-300">
-        
-        {/* Header - Savat paneli */}
-        <div
-          onClick={() => setIsOpen(!isOpen)}
-          className="bg-blue-600 p-4 flex justify-between items-center cursor-pointer text-white hover:bg-blue-700 transition-colors select-none active:bg-blue-800"
+    <div className="fixed top-4 right-4 z-50 pointer-events-none">
+      
+      {/* 🟢 O'NG TEPA QISMDAGI DOIRA SHAKLIDAGI SAVAT TUGMASI (Faqat yopiq paytda ko'rinadi) */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="pointer-events-auto flex items-center justify-center w-16 h-16 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 relative animate-bounce"
+          title="Savatni ochish"
         >
-          <div className="flex items-center gap-3">
-            <div className="relative bg-white/20 p-2.5 rounded-xl">
-              <ShoppingCart size={20} />
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-black shadow-md">
-                {items.length}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-black tracking-tight text-sm uppercase">Xarid Savati</span>
-              <span className="text-xs text-blue-100 font-bold">{totalSum.toLocaleString()} {"so'm"}</span>
-            </div>
-          </div>
-          <span className="text-[10px] bg-white/20 px-3 py-1.5 rounded-xl font-black uppercase tracking-wider">
-            {isOpen ? "Yopish" : "Ochish"}
+          <ShoppingCart size={26} />
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] w-6 h-6 flex items-center justify-center rounded-full font-black shadow-md border-2 border-white">
+            {items.length}
           </span>
-        </div>
+        </button>
+      )}
 
-        {/* Savat ochiq holatda */}
-        {isOpen && (
-          <div className="max-h-[65vh] overflow-y-auto p-5 space-y-5 bg-white">
+      {/* 🔵 SAVAT OCHILGANDA CHUNCHAKI KATTA BO'LIB CHIQADIGAN MODAL */}
+      {isOpen && (
+        <div className="pointer-events-auto w-full max-w-md bg-white border border-slate-200 shadow-2xl rounded-[2rem] overflow-hidden transition-all duration-300 transform scale-100 origin-top-right">
+          
+          {/* Header - Savat paneli sarlavhasi */}
+          <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+            <div className="flex items-center gap-3">
+              <div className="relative bg-white/20 p-2.5 rounded-xl">
+                <ShoppingCart size={20} />
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-black shadow-md">
+                  {items.length}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-black tracking-tight text-sm uppercase">Xarid Savati</span>
+                <span className="text-xs text-blue-100 font-bold">{(totalSum || 0).toLocaleString()} {"so'm"}</span>
+              </div>
+            </div>
+            
+            {/* 🛑 X TUGMASI (MODALNI YOPISH) */}
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="bg-white/10 hover:bg-white/20 active:bg-white/30 p-2 rounded-full transition-colors text-white"
+            >
+              <X size={20} className="stroke-[3]" />
+            </button>
+          </div>
+
+          {/* Savat ichki kontenti */}
+          <div className="max-h-[70vh] overflow-y-auto p-5 space-y-5 bg-white">
             
             {/* Mijoz Ma'lumotlari */}
             <div className="space-y-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-100/70">
@@ -131,7 +144,6 @@ export default function CartDrawer() {
             {/* Mahsulotlar ro'yxati */}
             <div className="space-y-2 max-h-[25vh] overflow-y-auto pr-1">
               {items.map((item) => (
-                // Kalit sifatida unikal cartItemId ishlatamiz
                 <div key={item.cartItemId} className="flex justify-between items-center p-3 border border-slate-100 rounded-xl bg-white shadow-sm hover:border-slate-200 transition-colors">
                   <div className="flex-1">
                     <h4 className="font-bold text-slate-800 text-sm leading-tight">{item.name}</h4>
@@ -143,9 +155,9 @@ export default function CartDrawer() {
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1 ml-2">
-                    <span className="font-black text-slate-900 text-sm">{item.total_price?.toLocaleString()} {"so'm"}</span>
+                    <span className="font-black text-slate-900 text-sm">{(item.total_price || 0).toLocaleString()} {"so'm"}</span>
                     <button 
-                      onClick={() => removeItem(item.cartItemId)} // o'chirishda ham cartItemId uzatamiz
+                      onClick={() => removeItem(item.cartItemId)}
                       className="text-slate-300 hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition-colors"
                     >
                       <Trash2 size={16} />
@@ -191,8 +203,8 @@ export default function CartDrawer() {
               </Button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
