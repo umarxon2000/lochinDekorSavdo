@@ -5,16 +5,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Edit, Package, Save, Loader2, Trash2, AlertTriangle, TrendingUp, } from "lucide-react";
+import { Plus, Edit, Package, Save, Loader2, Trash2, AlertTriangle, TrendingUp, LogOut } from "lucide-react";
 import { Product } from '@/types/product';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+  const router = useRouter();
   const [formData, setFormData] = useState<any>({
     id: null, name: '', category: 'yogoch', price_per_unit: '', 
     unit_type: 'metr', length: '', width: '', thickness: '', 
@@ -86,13 +86,15 @@ export default function AdminProducts() {
     fetchProducts();
   };
 
-  if (loading) return <div className="p-10 text-center font-bold animate-pulse text-blue-600">Yuklanmoqda...</div>;
+  // Tizimdan chiqish funksiyasi endi to'g'ri joyda - asosiy komponent ichida
+  const handleLogout = async () => {
+    if (!confirm("Tizimdan chiqmoqchimisiz?")) return;
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
-    const handleLogout = async () => {
-  await supabase.auth.signOut();
-  router.push('/login');
-  router.refresh();
-};
+  if (loading) return <div className="p-10 text-center font-bold animate-pulse text-blue-600">Yuklanmoqda...</div>;
 
   return (
     <div className="p-4 max-w-6xl mx-auto pb-24 bg-slate-50/50 min-h-screen">
@@ -102,11 +104,15 @@ export default function AdminProducts() {
           <h1 className="text-3xl font-black text-slate-900 uppercase flex items-center gap-3">
             <Package className="text-blue-600" size={32} /> Ombor
           </h1>
-         
         </div>
-        <Button onClick={() => openDialog()} className="bg-blue-600 hover:bg-blue-700 font-bold rounded-2xl h-12 px-6 shadow-lg shadow-blue-200 transition-all active:scale-95">
-          <Plus size={20} className="mr-2" /> Yangi Mahsulot
-        </Button>
+        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+          <Button onClick={handleLogout} variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50 font-bold rounded-2xl h-12 px-4">
+            <LogOut size={20} className="mr-2" /> Chiqish
+          </Button>
+          <Button onClick={() => openDialog()} className="bg-blue-600 hover:bg-blue-700 font-bold rounded-2xl h-12 px-6 shadow-lg shadow-blue-200 transition-all active:scale-95">
+            <Plus size={20} className="mr-2" /> Yangi Mahsulot
+          </Button>
+        </div>
       </div>
 
       {/* Statistika Kartochkalari */}
@@ -156,7 +162,7 @@ export default function AdminProducts() {
                    {p.price_per_unit?.toLocaleString()} <span className="text-[10px] font-medium opacity-50">{"so'm"}</span>
                 </TableCell>
                 <TableCell>
-                  <span className={`px-3 py-1 rounded-full text-xs font-black ${p.stock_quantity <= 10 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-black ${((p.stock_quantity || 0) <= 10) ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
                     {p.stock_quantity || 0} dona
                   </span>
                 </TableCell>
