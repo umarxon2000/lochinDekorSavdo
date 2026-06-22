@@ -1,6 +1,7 @@
 "use client"
 import { create } from "zustand";
 
+// 1. Mahsulot modeli
 export interface CartItem {
   cartItemId: string;       // product_id + variant_id kombinatsiyasi
   id: string;               // Mahsulot ID raqami
@@ -17,47 +18,60 @@ export interface CartItem {
   category: string;
 }
 
+// 2. Sotuvchi modeli
+export interface Seller {
+  id: string;
+  name: string;
+  phone?: string | null;
+}
+
+// 3. Zustand do'koni uchun interfeys (Strict Types)
 interface CartState {
   items: CartItem[];
   customerName: string;
   customerPhone: string;
-  sellerId: string;
-  sellerName: string;
+  selectedSeller: Seller | null; // Tanlangan sotuvchi obyekti
   
   addItem: (item: CartItem) => void;
   removeItem: (cartItemId: string) => void;
   clearCart: () => void;
   setCustomerInfo: (name: string, phone: string) => void;
-  setSellerInfo: (id: string, name: string) => void;
+  setSelectedSeller: (seller: Seller | null) => void; // Sotuvchini o'rnatish funksiyasi
 }
 
 export const useCartStore = create<CartState>((set) => ({
+  // Boshlang'ich holat (Initial State)
   items: [],
   customerName: "",
   customerPhone: "",
-  sellerId: "",
-  sellerName: "",
+  selectedSeller: null,
 
-  addItem: (item) =>
+  // Mahsulot qo'shish (Agar oldindan bo'lsa, o'chirib yangisini yozadi)
+  addItem: (item: CartItem) =>
     set((state) => {
       const filtered = state.items.filter((i) => i.cartItemId !== item.cartItemId);
       return { items: [...filtered, item] };
     }),
 
-  removeItem: (cartItemId) =>
+  // Mahsulotni savatdan o'chirish
+  removeItem: (cartItemId: string) =>
     set((state) => ({
       items: state.items.filter((i) => i.cartItemId !== cartItemId),
     })),
 
-  setCustomerInfo: (name, phone) => 
+  // Mijoz ma'lumotlarini saqlash
+  setCustomerInfo: (name: string, phone: string) => 
     set({ customerName: name, customerPhone: phone }),
 
-  setSellerInfo: (id, name) => 
-    set({ sellerId: id, sellerName: name }),
+  // Sotuvchi ma'lumotlarini saqlash
+  setSelectedSeller: (seller: Seller | null) => 
+    set({ selectedSeller: seller }),
 
+  // Savatni butunlay bo'shatish va ma'lumotlarni tozalash
   clearCart: () => set({ 
     items: [], 
     customerName: "", 
-    customerPhone: "" 
+    customerPhone: "",
+    selectedSeller: null // Sotuvchi ham tozalanadi
   }),
 }));
