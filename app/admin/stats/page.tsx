@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase'; // o'zingizni pathingiz
+import { createClient } from '@/utils/supabase/client';'zingizni pathingiz
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, DollarSign, ShoppingBag } from "lucide-react";
 
