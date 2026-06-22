@@ -1,5 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
+
+// setAll uchun kerak bo'ladigan cookie obyekti strukturasini belgilaymiz
+interface CookieToSet {
+  name: string;
+  value: string;
+  options?: Partial<ResponseCookie>;
+}
 
 export const createClient = async () => {
   const cookieStore = await cookies();
@@ -12,13 +20,16 @@ export const createClient = async () => {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: CookieToSet[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // Server Component ichida setAll xato berishi mumkin, buni e'tiborsiz qoldiramiz
+          } catch (error) {
+            // Server Component ichida middleware yoki server action-dan tashqari 
+            // holatlarda cookie-ni o'zgartirish (set qilish) taqiqlangan.
+            // Next.js arxitekturasi bo'yicha buni yutib yuborish xavfsiz hisoblanadi.
+            void error; 
           }
         },
       },

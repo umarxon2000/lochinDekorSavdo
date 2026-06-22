@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-export const updateSession = async (request: NextRequest) => {
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -17,7 +17,7 @@ export const updateSession = async (request: NextRequest) => {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           response = NextResponse.next({
@@ -31,24 +31,42 @@ export const updateSession = async (request: NextRequest) => {
     }
   );
 
-  // Foydalanuvchini tekshiramiz
+  // Foydalanuvchi sessiyasini tekshirish
   const { data: { user } } = await supabase.auth.getUser();
-
   const isLoginPage = request.nextUrl.pathname === '/login';
 
-  // --- YANGI XAVFSIZLIK QOIDASI ---
-  // Agar foydalanuvchi tizimga kirmagan bo'lsa VA hozir login sahifasida bo'lmasa,
-  // uni AVTOMATIK ravishda login sahifasiga jo'natib yuboramiz.
-  // Bu qoida barcha sahifalarni (shu jumladan '/' bosh sahifani ham) to'liq yopadi.
+  // ⚠️ Static fayllar, rasmlar va api-larni middleware cheklovidan o'tkazib yuborish
+  // Bu qator login sahifasidagi dizaynlar (Tailwind, rasmlar) buzilib ketmasligi uchun muhim
+  if (
+    request.nextUrl.pathname.startsWith('/_next') ||
+    request.nextUrl.pathname.startsWith('/api') ||
+    request.nextUrl.pathname.includes('.')
+  ) {
+    return response;
+  }
+
+  // Tizimga kirmagan bo'lsa, login sahifasiga majburiy yo'naltirish
   if (!user && !isLoginPage) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Agar foydalanuvchi tizimga kirgan bo'lsa va login sahifasiga kirmoqchi bo'lsa,
-  // uni asosiy savdo sahifasiga ('/') qaytaramiz
+  // Tizimga kirgan bo'lsa, login sahifasiga qayta kirmaslik
   if (user && isLoginPage) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
   return response;
+}
+
+// Next.js qaysi sahifalarda middleware ishlashini bilishi uchun konfiguratsiya
+export const config = {
+  matcher: [
+    /*
+     * Quyidagi formatlardan tashqari barcha sahifalarni tekshiradi:
+     * - _next/static (statik fayllar)
+     * - _next/image (tasvirlarni optimallashtirish fayllari)
+     * - favicon.ico (sayt belgisi)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
