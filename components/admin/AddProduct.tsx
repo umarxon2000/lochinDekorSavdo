@@ -22,7 +22,7 @@ export default function AddProduct() {
 
   return (
     <form onSubmit={handleSubmit} className="p-4 bg-white rounded-xl border space-y-4 shadow-sm">
-      <h2 className="text-xl font-bold">Yangi mahsulot qo'shish</h2>
+      <h2 className="text-xl font-bold">{"Yangi mahsulot qo'shish"}</h2>
       
       <div className="grid grid-cols-1 gap-4">
         <div>
@@ -36,7 +36,7 @@ export default function AddProduct() {
             <Input type="number" placeholder="1200" onChange={e => setFormData({...formData, width: e.target.value})} />
           </div>
           <div>
-            <Label>Bo'yi (mm)</Label>
+            <Label>{"Bo'yi (mm)"}</Label>
             <Input type="number" placeholder="2500" onChange={e => setFormData({...formData, height: e.target.value})} />
           </div>
         </div>
