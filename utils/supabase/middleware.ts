@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient  } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 // Linter "any" deb osilmasligi uchun cookie obyekti strukturasini belgilaymiz
