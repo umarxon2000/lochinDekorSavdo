@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+// Linter "any" deb osilmasligi uchun cookie obyekti strukturasini belgilaymiz
+interface CookieItem {
+  name: string;
+  value: string;
+  options?: any;
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -16,7 +23,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: CookieItem[]) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
@@ -35,8 +42,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const isLoginPage = request.nextUrl.pathname === '/login';
 
-  // ⚠️ Static fayllar, rasmlar va api-larni middleware cheklovidan o'tkazib yuborish
-  // Bu qator login sahifasidagi dizaynlar (Tailwind, rasmlar) buzilib ketmasligi uchun muhim
+  // ⚠️ Statik assetlarni o'tkazib yuborish
   if (
     request.nextUrl.pathname.startsWith('/_next') ||
     request.nextUrl.pathname.startsWith('/api') ||
@@ -58,15 +64,8 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// Next.js qaysi sahifalarda middleware ishlashini bilishi uchun konfiguratsiya
 export const config = {
   matcher: [
-    /*
-     * Quyidagi formatlardan tashqari barcha sahifalarni tekshiradi:
-     * - _next/static (statik fayllar)
-     * - _next/image (tasvirlarni optimallashtirish fayllari)
-     * - favicon.ico (sayt belgisi)
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
